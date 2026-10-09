@@ -18,6 +18,20 @@ PS C:\Stuff> windrop report.pdf
 Drop completed (Copy).
 ```
 
+## How to install
+
+### Choco
+```powershell
+choco install windrop
+```
+
+### Winget
+```powershell
+winget install Dking08.Windrop
+```
+
+or download binary from [release windrop.exe](https://github.com/Dking08/windrop/releases/download/v2.1.0/windrop.exe)
+
 ---
 
 ## How to Use
