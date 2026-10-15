@@ -1,0 +1,8 @@
+{
+  "files": {
+    "TICKETS_WATCHER_COMMANDS.md": 2
+  },
+  "command_check_scripts": [
+    "build.bat"
+  ]
+}
