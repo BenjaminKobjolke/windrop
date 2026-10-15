@@ -114,6 +114,11 @@ windrop *.jpg "C:\My Documents\report.xlsx"
 - Visual Studio 2019 or 2022 (C++ Desktop workload)
 - CMake 3.16+
 
+### Build via script
+
+`tools\build.bat` finds Visual Studio with `vswhere` and uses the CMake bundled
+with it, so CMake does not need to be on `PATH`.
+
 ### Build via PowerShell (2 lines)
 
 ```powershell
