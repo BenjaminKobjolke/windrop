@@ -58,6 +58,7 @@ Earlier versions relied on low-level keyboard hooks (`SetWindowsHookExW(WH_KEYBO
 Starting with **v2.1.0**, `windrop` uses official Win32 `RegisterHotKey`:
 - **Dedicated Worker Thread (`HotkeyThread`)**: `DoDragDrop` runs an internal modal message loop that selectively filters out `WM_HOTKEY` (`0x0312`). To avoid message starvation during active drag, hotkeys are registered and pumped on a dedicated worker thread with an uninhibited message queue.
 - **`MOD_NOREPEAT` Protection**: Prevents OS autorepeat while a key is physically held down, ensuring clean 2-step transitions (1st `F8` engage &rarr; 2nd `F8` drop).
+- **`--keyboard` Keys**: The same thread also registers `WASD`/arrows (without `MOD_NOREPEAT`, so holding keeps moving; each hit sends a relative `SendInput` mouse move) and `Q`/`Space`/`Enter` (drop, same path as the 2nd `F8`). `wmain` posts `WM_START_F8_DRAG` right after showing the card, so the drag is engaged without `F8`. One `kKeyboardKeys` table drives registration and dispatch.
 - **Multi-Card Cascade Hand-off**: When multiple cards are staged, `WM_CLAIM_HOTKEY` dynamically re-routes hotkey ownership to the topmost card.
 
 ---

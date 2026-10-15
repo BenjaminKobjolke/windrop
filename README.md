@@ -69,6 +69,7 @@ windrop *.jpg "C:\My Documents\report.xlsx"
 | Action | How to Trigger |
 | :--- | :--- |
 | **Keyboard Drag & Drop** | Hover cursor over target window and press **`F8`** to drag &rarr; press **`F8`** or left-click to drop |
+| **Keyboard-Only (`--keyboard`)** | Drag starts at once at the cursor; **`WASD`** / arrow keys move it (hold to keep moving), **`Q`**, **`Space`** or **`Enter`** drop |
 | **Mouse Drag & Drop** | Grab and drag the floating card widget directly into any window |
 | **Dismiss / Cancel** | Press **`Escape`** or **Right-Click** the card anytime |
 
@@ -79,6 +80,7 @@ windrop *.jpg "C:\My Documents\report.xlsx"
 - **True Standalone Binary**: Pure C++17 compiled against native Windows APIs (`ole32`, `shell32`, `user32`). Starts instantly, exits immediately after drop, uses 0 background resources.
 - **No internet access**, not even sockets/network libs anywhere in `CMakeLists.txt` or source.
 - **2-Step Keyboard Drag (`F8`)**: Hover over any destination window, press **`F8`** to engage drag (target lights up with visual drop cues), and press **`F8`** or left-click to drop.
+- **Keyboard-Only Mode (`--keyboard`)**: For callers that already put the cursor on the target (e.g. a file manager). The drag engages immediately, `WASD`/arrows nudge the cursor 20 px per press, `Q`/`Space`/`Enter` drop, `Esc` cancels. These keys are registered only in this mode.
 - **Floating Acrylic Card**: Sleek dark card with 32x32 native shell file icon for direct mouse drags.
 - **Multi-Widget Staging**: Run `windrop` multiple times from your CLI &mdash; cards automatically cascade (`+30px` offset) across your desktop.
 - **Multi-Format Shell Payload**:

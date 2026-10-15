@@ -44,6 +44,36 @@ static const wchar_t* kCardClassName = L"WindropPayloadCardWnd";
 static constexpr int kHotkeyF8  = 1;
 static constexpr int kHotkeyEsc = 2;
 
+// --keyboard: the drag starts at once and these keys steer it.
+// ponytail: fixed step, add Shift-accelerate if aiming feels slow.
+static constexpr int kKeyboardStep = 20;
+
+struct KeyboardKey
+{
+    UINT vk;
+    UINT mods;
+    int  dx;
+    int  dy;
+};
+
+// Moves repeat while held; dx == dy == 0 means drop. Hotkey id = 3 + index.
+static constexpr KeyboardKey kKeyboardKeys[] = {
+    { 'W',       0,             0,              -kKeyboardStep },
+    { 'A',       0,             -kKeyboardStep, 0 },
+    { 'S',       0,             0,              kKeyboardStep },
+    { 'D',       0,             kKeyboardStep,  0 },
+    { VK_UP,     0,             0,              -kKeyboardStep },
+    { VK_LEFT,   0,             -kKeyboardStep, 0 },
+    { VK_DOWN,   0,             0,              kKeyboardStep },
+    { VK_RIGHT,  0,             kKeyboardStep,  0 },
+    { 'Q',       MOD_NOREPEAT,  0,              0 },
+    { VK_SPACE,  MOD_NOREPEAT,  0,              0 },
+    { VK_RETURN, MOD_NOREPEAT,  0,              0 },
+};
+static constexpr int kHotkeyKeyboardFirst = 3;
+static constexpr int kKeyboardKeyCount =
+    static_cast<int>(sizeof(kKeyboardKeys) / sizeof(kKeyboardKeys[0]));
+
 #define WM_HOTKEY_CMD_REGISTER   (WM_USER + 10)
 #define WM_HOTKEY_CMD_UNREGISTER (WM_USER + 11)
 
@@ -67,6 +97,7 @@ static volatile bool        g_isDragging     = false;
 static volatile bool        g_shouldDrop     = false;
 static volatile bool        g_shouldCancel   = false;
 static bool                 g_verbose        = false;
+static bool                 g_keyboard       = false;
 
 // ── Helpers to find topmost Windrop window across processes ──
 struct TopWindropFinder
@@ -112,6 +143,23 @@ static void WakeupDragLoop()
     SendInput(2, inputs, sizeof(INPUT));
 }
 
+static void RequestDrop()
+{
+    g_shouldDrop = true;
+    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+    WakeupDragLoop();
+}
+
+static void MoveCursorBy(int dx, int dy)
+{
+    INPUT input = {};
+    input.type = INPUT_MOUSE;
+    input.mi.dwFlags = MOUSEEVENTF_MOVE;
+    input.mi.dx = dx;
+    input.mi.dy = dy;
+    SendInput(1, &input, sizeof(INPUT));
+}
+
 // ── Dedicated background thread for global hotkeys ──
 // Runs its own message pump so hotkeys are never blocked by DoDragDrop's internal loop
 static DWORD WINAPI HotkeyThreadProc(LPVOID)
@@ -121,11 +169,18 @@ static DWORD WINAPI HotkeyThreadProc(LPVOID)
     auto doRegister = []() {
         RegisterHotKey(nullptr, kHotkeyF8, MOD_NOREPEAT, VK_F8);
         RegisterHotKey(nullptr, kHotkeyEsc, MOD_NOREPEAT, VK_ESCAPE);
+        if (g_keyboard)
+            for (int i = 0; i < kKeyboardKeyCount; ++i)
+                RegisterHotKey(nullptr, kHotkeyKeyboardFirst + i,
+                               kKeyboardKeys[i].mods, kKeyboardKeys[i].vk);
     };
 
     auto doUnregister = []() {
         UnregisterHotKey(nullptr, kHotkeyF8);
         UnregisterHotKey(nullptr, kHotkeyEsc);
+        if (g_keyboard)
+            for (int i = 0; i < kKeyboardKeyCount; ++i)
+                UnregisterHotKey(nullptr, kHotkeyKeyboardFirst + i);
     };
 
     doRegister();
@@ -154,10 +209,17 @@ static DWORD WINAPI HotkeyThreadProc(LPVOID)
                 else
                 {
                     // Phase 2: User pressed F8 to drop!
-                    g_shouldDrop = true;
-                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
-                    WakeupDragLoop();
+                    RequestDrop();
                 }
+            }
+            else if (msg.wParam >= kHotkeyKeyboardFirst &&
+                     msg.wParam < kHotkeyKeyboardFirst + kKeyboardKeyCount)
+            {
+                const KeyboardKey& key = kKeyboardKeys[msg.wParam - kHotkeyKeyboardFirst];
+                if (key.dx || key.dy)
+                    MoveCursorBy(key.dx, key.dy);
+                else if (g_isDragging)
+                    RequestDrop();
             }
             else if (msg.wParam == kHotkeyEsc)
             {
@@ -450,6 +512,11 @@ int wmain(int argc, wchar_t* argv[])
             g_verbose = true;
             continue;
         }
+        if (arg == L"--keyboard")
+        {
+            g_keyboard = true;
+            continue;
+        }
         rawArgs.emplace_back(arg);
     }
 
@@ -520,7 +587,9 @@ int wmain(int argc, wchar_t* argv[])
     {
         state.displayTitle = std::to_wstring(files.size()) + L" files";
     }
-    state.displaySubtitle = L"Drag or [F8] Engage \x2022 Right-Click Exit";
+    state.displaySubtitle = g_keyboard
+        ? L"WASD/Arrows Move \x2022 Q/Space/Enter Drop \x2022 Esc Exit"
+        : L"Drag or [F8] Engage \x2022 Right-Click Exit";
 
     g_pState = &state;
 
@@ -586,12 +655,18 @@ int wmain(int argc, wchar_t* argv[])
     ShowWindow(hwnd, SW_SHOW);
     UpdateWindow(hwnd);
 
+    // The caller already aimed the cursor, so engage the drag like F8 would.
+    if (g_keyboard)
+        PostMessageW(hwnd, WM_START_F8_DRAG, 0, 0);
+
     if (g_verbose)
     {
         fwprintf(stderr, L"\nwindrop ready\n\n");
         fwprintf(stderr, L"Controls:\n");
         fwprintf(stderr, L"  - Mouse:    Drag the floating card directly into any window\n");
         fwprintf(stderr, L"  - Keyboard: Hover over target window and press [F8] to drag -> press [F8] or left-click to drop\n");
+        if (g_keyboard)
+            fwprintf(stderr, L"  - --keyboard: [WASD]/arrows move, [Q]/[Space]/[Enter] drop\n");
         fwprintf(stderr, L"  - Dismiss:  Press [Esc] or right-click on card\n\n");
     }
 
