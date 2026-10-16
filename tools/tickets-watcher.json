@@ -4,5 +4,12 @@
   },
   "command_check_scripts": [
     "build.bat"
-  ]
+  ],
+  "analysis_commands": [],
+  "analysis_commands_seen": {
+    "scripts": [
+      "build.bat"
+    ],
+    "tests": false
+  }
 }
