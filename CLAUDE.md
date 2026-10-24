@@ -29,3 +29,13 @@ they are intentionally referenced, not imported.
 # Code directory
 
 This project's code directory is src/.
+
+## Code Analysis
+
+Run the changed-files analyzer after implementing a feature or fixing a bug:
+
+```bash
+powershell -Command "cd 'D:\GIT\BenjaminKobjolke\windrop'; cmd /c '.\tools\analyze_changed_and_new_files.bat'"
+```
+
+This checks new and modified C++ files against Git `HEAD`. Use `tools/analyze_code.bat` for a full-project audit. Reports are written to `code_analysis_results/`.
