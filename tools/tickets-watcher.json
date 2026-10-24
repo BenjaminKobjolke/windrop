@@ -13,5 +13,6 @@
       "graphify_update.bat"
     ],
     "tests": false
-  }
+  },
+  "analysis_code_quality_answered": true
 }
