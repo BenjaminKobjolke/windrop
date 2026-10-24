@@ -9,7 +9,8 @@
   "analysis_commands": [],
   "analysis_commands_seen": {
     "scripts": [
-      "build.bat"
+      "build.bat",
+      "graphify_update.bat"
     ],
     "tests": false
   }
