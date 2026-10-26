@@ -29,6 +29,13 @@ set(SOURCES
     src/DropSource.h
     src/DataObject.cpp
     src/DataObject.h
+    src/DataObjectFormats.cpp
+    src/AppState.h
+    src/Hotkeys.h
+    src/Hotkeys.cpp
+    src/CardWindow.h
+    src/CardWindow.cpp
+    src/EnumFormatEtc.h
     src/DragImage.cpp
     src/DragImage.h
     src/Utils.cpp
