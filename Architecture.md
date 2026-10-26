@@ -10,9 +10,14 @@ Technical overview of the `windrop` codebase and Windows OLE drag-and-drop orche
 windrop/
 ├── CMakeLists.txt          # Modern C++17 build configuration (/W4 /WX strict)
 └── src/
-    ├── main.cpp            # Entry point, UI card window, OLE DoDragDrop loop
+    ├── main.cpp            # Entry point, argument parsing, card setup
+    ├── AppState.h          # Shared state and constants
+    ├── CardWindow.cpp/.h   # Card window and OLE DoDragDrop loop
+    ├── Hotkeys.cpp/.h      # Global hotkey worker thread
     ├── DropSource.cpp/.h   # IDropSource implementation & drop query state
-    ├── DataObject.cpp/.h   # IDataObject multi-format shell clipboard provider
+    ├── DataObject.cpp/.h   # IDataObject and multi-format shell clipboard provider
+    ├── DataObjectFormats.cpp # IDataObject clipboard format builders
+    ├── EnumFormatEtc.h     # IEnumFORMATETC implementation
     ├── DragImage.cpp/.h    # IDragSourceHelper shell thumbnail preview renderer
     └── Utils.cpp/.h        # Wildcard expansion and path resolution
 ```
