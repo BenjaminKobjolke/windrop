@@ -30,6 +30,9 @@
   "analysis_command_states": {
     "tools\\analyze_changed_and_new_files.bat": {
       "code_quality": "green"
+    },
+    "tools\\analyze_code.bat": {
+      "code_quality": "failed"
     }
   },
   "analysis_tests_answered": true
